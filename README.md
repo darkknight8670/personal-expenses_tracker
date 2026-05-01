@@ -27,7 +27,7 @@ MongoDB gives durable storage with a schema layer and indexes that map well to t
 Create a `.env` file in the project root:
 
 ```bash
-MONGODB_URI=mongodb://127.0.0.1:27017/fenmo_expense_tracker
+MONGODB_URI=mongodb://.......
 PORT=3000
 ```
 
