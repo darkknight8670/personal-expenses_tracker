@@ -1,5 +1,5 @@
 {
-  "name": "fenmo-expense-tracker",
+  "name": "personal-expenses-tracker-v2",
   "version": "1.0.0",
   "description": "Minimal full-stack expense tracker for the Fenmo assessment.",
   "main": "server.js",
