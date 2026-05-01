@@ -1,4 +1,3 @@
-const serverless = require('serverless-http');
-const { app } = require('../server');
-
-module.exports = serverless(app);
+export default function handler(req, res) {
+  res.status(200).send("Backend is working 🚀");
+}
