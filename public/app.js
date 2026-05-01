@@ -209,7 +209,7 @@ async function loadExpenses() {
   setStatus('Loading expenses...');
 
   try {
-    const response = await fetch('/expenses');
+    const response = await fetch('/api/expenses');
 
     if (!response.ok) {
       throw new Error('Failed to load expenses.');
@@ -254,7 +254,7 @@ async function submitExpense(event) {
   setStatus('Saving expense...');
 
   try {
-    const response = await fetch('/expenses', {
+    const response = await fetch('/api/expenses', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
