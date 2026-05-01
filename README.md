@@ -16,7 +16,7 @@ Minimal full-stack expense tracker built for the assessment.
 
 - Node.js + Express for the API and static hosting.
 - MongoDB + Mongoose for persistence.
-- Vanilla JavaScript for the browser UI.
+- Vanilla JavaScript for the browser UI.  
 
 ## Why MongoDB
 
