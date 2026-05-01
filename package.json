@@ -1,0 +1,14 @@
+{
+  "name": "fenmo-expense-tracker",
+  "version": "1.0.0",
+  "description": "Minimal full-stack expense tracker for the Fenmo assessment.",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

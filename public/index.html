@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fenmo Expense Tracker</title>
+    <meta name="description" content="A small expense tracker with retry-safe create, filtering, sorting, and totals." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+    <main class="shell">
+      <section class="hero card">
+        <div>
+          <p class="eyebrow">Personal finance tool</p>
+          <h1>Track expenses with a retry-safe flow.</h1>
+          <p class="lede">
+            Add expenses, filter them by category, sort by date, and keep a running total of the rows you can actually see.
+          </p>
+        </div>
+        <div class="stats-grid">
+          <article class="stat">
+            <span class="stat-label">Visible total</span>
+            <strong id="visible-total">$0.00</strong>
+          </article>
+          <article class="stat">
+            <span class="stat-label">Rows shown</span>
+            <strong id="visible-count">0</strong>
+          </article>
+        </div>
+      </section>
+
+      <section class="layout">
+        <form id="expense-form" class="card form-card">
+          <div class="card-header">
+            <div>
+              <p class="eyebrow">New expense</p>
+              <h2>Add an entry</h2>
+            </div>
+            <span class="badge">API: /expenses</span>
+          </div>
+
+          <div class="grid two-up">
+            <label>
+              <span>Amount</span>
+              <input id="amount" name="amount" type="number" step="0.01" min="0.01" placeholder="12.50" required />
+            </label>
+            <label>
+              <span>Date</span>
+              <input id="date" name="date" type="date" required />
+            </label>
+          </div>
+
+          <label>
+            <span>Category</span>
+            <input id="category" name="category" type="text" placeholder="Groceries" maxlength="60" required />
+          </label>
+
+          <label>
+            <span>Description</span>
+            <textarea id="description" name="description" rows="4" placeholder="Trader Joe's weekly haul" maxlength="240" required></textarea>
+          </label>
+
+          <div class="actions">
+            <button id="submit-button" type="submit">Save expense</button>
+            <p id="form-status" class="status" aria-live="polite"></p>
+          </div>
+        </form>
+
+        <section class="card list-card">
+          <div class="card-header stacked-on-mobile">
+            <div>
+              <p class="eyebrow">Ledger</p>
+              <h2>Expenses</h2>
+            </div>
+            <div class="controls">
+              <label>
+                <span>Category</span>
+                <select id="category-filter">
+                  <option value="">All categories</option>
+                </select>
+              </label>
+              <label>
+                <span>Sort</span>
+                <select id="sort-filter">
+                  <option value="date_desc">Newest first</option>
+                  <option value="date_asc">Oldest first</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div id="message-banner" class="banner hidden" role="status"></div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Category</th>
+                  <th>Description</th>
+                  <th class="numeric">Amount</th>
+                </tr>
+              </thead>
+              <tbody id="expense-rows"></tbody>
+            </table>
+          </div>
+
+          <div id="empty-state" class="empty-state hidden">
+            <p>No expenses yet. Add the first one above.</p>
+          </div>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>
