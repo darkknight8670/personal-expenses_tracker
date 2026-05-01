@@ -216,6 +216,16 @@ h2 {
   font-size: 0.85rem;
 }
 
+.badge--full {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px 18px;
+  background: rgba(10, 111, 97, 0.1);
+  border: 1px solid rgba(10, 111, 97, 0.08);
+}
+
 .grid {
   display: grid;
   gap: 14px;
