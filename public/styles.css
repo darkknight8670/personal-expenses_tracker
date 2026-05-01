@@ -186,8 +186,13 @@ h2 {
 
 .layout {
   display: grid;
-  grid-template-columns: 0.92fr 1.08fr;
+  grid-template-columns: 1fr;
   gap: 24px;
+}
+
+.form-card,
+.list-card {
+  width: 100%;
 }
 
 .form-card,
