@@ -11,6 +11,7 @@ const totalNode = document.getElementById('visible-total');
 const countNode = document.getElementById('visible-count');
 const categoryFilterNode = document.getElementById('category-filter');
 const sortFilterNode = document.getElementById('sort-filter');
+const categorySummaryNode = document.getElementById('category-summary');
 const bannerNode = document.getElementById('message-banner');
 
 const currencyFormatter = new Intl.NumberFormat('en-US', {
@@ -124,6 +125,58 @@ function renderCategoryOptions() {
   categoryFilterNode.value = categories.includes(selected) ? selected : '';
 }
 
+function renderCategorySummary(expenses) {
+  const totalsByCategory = new Map();
+
+  for (const expense of expenses) {
+    const current = totalsByCategory.get(expense.category) || { amountCents: 0, count: 0 };
+    current.amountCents += expense.amount_cents;
+    current.count += 1;
+    totalsByCategory.set(expense.category, current);
+  }
+
+  const summaryRows = [...totalsByCategory.entries()]
+    .map(([category, summary]) => ({ category, ...summary }))
+    .sort((left, right) => {
+      if (right.amountCents !== left.amountCents) {
+        return right.amountCents - left.amountCents;
+      }
+
+      return left.category.localeCompare(right.category);
+    });
+
+  categorySummaryNode.innerHTML = '';
+
+  if (summaryRows.length === 0) {
+    categorySummaryNode.innerHTML = '<p class="summary-empty">No visible expenses to summarize.</p>';
+    return;
+  }
+
+  for (const row of summaryRows) {
+    const card = document.createElement('article');
+    card.className = 'summary-card';
+
+    card.innerHTML = `
+      <span class="summary-card__label">${row.category}</span>
+      <strong class="summary-card__amount">${formatMoney(row.amountCents)}</strong>
+      <span class="summary-card__meta">${row.count} expense${row.count === 1 ? '' : 's'}</span>
+    `;
+
+    categorySummaryNode.appendChild(card);
+  }
+}
+
+function upsertExpense(expense) {
+  const existingIndex = state.expenses.findIndex((item) => item.id === expense.id);
+
+  if (existingIndex === -1) {
+    state.expenses.unshift(expense);
+    return;
+  }
+
+  state.expenses[existingIndex] = expense;
+}
+
 function renderExpenses() {
   const visibleExpenses = getVisibleExpenses();
 
@@ -148,6 +201,7 @@ function renderExpenses() {
   emptyStateNode.classList.toggle('hidden', visibleExpenses.length !== 0);
   totalNode.textContent = formatMoney(visibleExpenses.reduce((sum, expense) => sum + expense.amount_cents, 0));
   countNode.textContent = String(visibleExpenses.length);
+  renderCategorySummary(visibleExpenses);
 }
 
 async function loadExpenses() {
@@ -212,11 +266,16 @@ async function submitExpense(event) {
       throw new Error(body.error || 'Unable to save expense.');
     }
 
+    if (body.expense) {
+      upsertExpense(body.expense);
+      renderCategoryOptions();
+      renderExpenses();
+    }
+
     clearDraft();
     form.reset();
     form.dataset.requestId = createDraftId();
     setStatus('Expense saved.');
-    await loadExpenses();
   } catch (error) {
     setStatus(error.message || 'Unable to save expense.', 'error');
   } finally {
