@@ -946,12 +946,12 @@ tbody tr:focus-within {
 
   .controls {
     gap: 12px;
-    flex-direction: column;
+    justify-content: flex-start;
   }
 
   .controls label {
-    min-width: unset;
-    flex: 1 1 auto;
+    min-width: 140px;
+    flex: 0 1 auto;
   }
 
   .summary-grid {
@@ -1166,6 +1166,12 @@ tbody tr:focus-within {
 
   .controls {
     gap: 10px;
+    justify-content: flex-start;
+  }
+
+  .controls label {
+    min-width: 120px;
+    flex: 0 1 auto;
   }
 
   .summary-grid {
