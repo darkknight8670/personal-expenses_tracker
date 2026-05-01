@@ -1,13 +1,10 @@
-require('dotenv').config();
-
 const express = require('express');
 const path = require('path');
-const { connectToDatabase } = require('./src/db');
 const { createExpenseStore, parseExpenseInput } = require('./src/store');
 
 const app = express();
 const port = process.env.PORT || 3000;
-const store = createExpenseStore();
+const store = createExpenseStore(path.join(__dirname, 'data', 'expenses.json'));
 const publicDir = path.join(__dirname, 'public');
 
 app.use(express.json());
@@ -55,19 +52,14 @@ app.use((error, _req, res, _next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-async function startServer() {
-  await connectToDatabase();
-
+function startServer() {
   return app.listen(port, () => {
     console.log(`Expense tracker listening on http://localhost:${port}`);
   });
 }
 
 if (require.main === module) {
-  startServer().catch((error) => {
-    console.error('Failed to start application:', error);
-    process.exit(1);
-  });
+  startServer();
 }
 
 module.exports = { app, startServer };

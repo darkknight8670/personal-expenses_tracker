@@ -15,23 +15,32 @@ Minimal full-stack expense tracker built for the assessment.
 ## Stack
 
 - Node.js + Express for the API and static hosting.
-- MongoDB + Mongoose for persistence.
+- JSON file storage for persistence.
 - Vanilla JavaScript for the browser UI.  
 
-## Why MongoDB
+## Why JSON file storage
 
-MongoDB gives durable storage with a schema layer and indexes that map well to this app's access patterns. A unique sparse index on `request_id` helps guarantee idempotent create behavior under retries. Money is still stored as integer cents to avoid floating-point rounding issues.
+The assignment values correctness under retries and refreshes more than infrastructure complexity. A file-backed store keeps the app easy to run locally and easy to deploy on a single-instance host. Money is still stored as integer cents to avoid floating-point rounding issues.
 
 ## Configuration
 
-Create a `.env` file in the project root:
+No database service is required. The app writes to `data/expenses.json` automatically.
 
-```bash
-MONGODB_URI=mongodb://.......
-PORT=3000
-```
+## Deploy on Vercel
 
-You can replace `MONGODB_URI` with your Atlas connection string.
+1. Push this repository to GitHub.
+2. Import the repository in Vercel.
+3. Keep the framework preset as `Other`.
+4. No build command is required.
+5. Deploy.
+
+The project includes `vercel.json` so all routes are handled by `api/index.js` and your existing frontend calls like `/expenses` continue to work.
+
+### Important JSON Storage Caveat
+
+On Vercel serverless functions, writing to local files is ephemeral and not reliable across invocations. This means `data/expenses.json` is fine for local development, but deployed data can reset or diverge.
+
+For production-like behavior on Vercel, use an external datastore (MongoDB Atlas, Neon/Postgres, Supabase, or Vercel KV).
 
 ## Run locally
 

@@ -1,4 +1,6 @@
-const { Expense } = require('./models/expense');
+const fs = require('fs/promises');
+const path = require('path');
+const { randomUUID } = require('crypto');
 
 function badRequest(message) {
   const error = new Error(message);
@@ -63,73 +65,111 @@ function parseExpenseInput(body = {}) {
   };
 }
 
-function escapeRegex(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
 function toExpense(record) {
-  const dateValue = new Date(record.date).toISOString().slice(0, 10);
-
   return {
-    id: String(record._id),
+    id: record.id,
     request_id: record.request_id || '',
     amount_cents: record.amount_cents,
     amount: formatCents(record.amount_cents),
     category: record.category,
     description: record.description,
-    date: dateValue,
-    created_at: new Date(record.created_at).toISOString(),
+    date: record.date,
+    created_at: record.created_at,
   };
 }
 
-function createExpenseStore() {
+function createExpenseStore(filePath) {
+  let queue = Promise.resolve();
+
+  async function ensureFile() {
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+
+    try {
+      await fs.access(filePath);
+    } catch {
+      await fs.writeFile(filePath, JSON.stringify({ expenses: [] }, null, 2));
+    }
+  }
+
+  async function readState() {
+    await ensureFile();
+    const raw = await fs.readFile(filePath, 'utf8');
+
+    if (!raw.trim()) {
+      return { expenses: [] };
+    }
+
+    const parsed = JSON.parse(raw);
+
+    if (!parsed || !Array.isArray(parsed.expenses)) {
+      return { expenses: [] };
+    }
+
+    return parsed;
+  }
+
+  async function writeState(state) {
+    const tempFile = `${filePath}.${process.pid}.${Date.now()}.tmp`;
+    await fs.writeFile(tempFile, JSON.stringify(state, null, 2));
+    await fs.rename(tempFile, filePath);
+  }
+
+  function withLock(task) {
+    const run = queue.then(task, task);
+    queue = run.then(() => undefined, () => undefined);
+    return run;
+  }
+
   return {
     async createExpense(input) {
-      if (input.requestId) {
-        const existing = await Expense.findOne({ request_id: input.requestId }).lean();
+      return withLock(async () => {
+        const state = await readState();
 
-        if (existing) {
-          return toExpense(existing);
-        }
-      }
-
-      try {
-        const created = await Expense.create({
-          request_id: input.requestId || undefined,
-          amount_cents: input.amountCents,
-          category: input.category,
-          description: input.description,
-          date: new Date(`${input.date}T00:00:00.000Z`),
-        });
-
-        return toExpense(created.toObject());
-      } catch (error) {
-        if (error && error.code === 11000 && input.requestId) {
-          const existing = await Expense.findOne({ request_id: input.requestId }).lean();
+        if (input.requestId) {
+          const existing = state.expenses.find((expense) => expense.request_id === input.requestId);
 
           if (existing) {
             return toExpense(existing);
           }
         }
 
-        throw error;
-      }
+        const now = new Date().toISOString();
+        const expense = {
+          id: randomUUID(),
+          request_id: input.requestId || '',
+          amount_cents: input.amountCents,
+          category: input.category,
+          description: input.description,
+          date: input.date,
+          created_at: now,
+        };
+
+        state.expenses.push(expense);
+        await writeState(state);
+
+        return toExpense(expense);
+      });
     },
 
     async listExpenses({ category, sort } = {}) {
-      const filter = String(category ?? '').trim();
-      const query = {};
+      const state = await readState();
+      const filter = String(category ?? '').trim().toLowerCase();
+      const filtered = filter
+        ? state.expenses.filter((expense) => expense.category.toLowerCase() === filter)
+        : [...state.expenses];
 
-      if (filter) {
-        query.category = new RegExp(`^${escapeRegex(filter)}$`, 'i');
-      }
+      const sorted = filtered.sort((left, right) => {
+        const dateDelta = new Date(right.date).getTime() - new Date(left.date).getTime();
 
-      const sortDirection = sort === 'date_asc' ? 1 : -1;
-      const expenses = await Expense.find(query)
-        .sort({ date: sortDirection, created_at: sortDirection })
-        .lean();
+        if (dateDelta !== 0) {
+          return sort === 'date_asc' ? -dateDelta : dateDelta;
+        }
 
-      return expenses.map(toExpense);
+        const createdDelta = new Date(right.created_at).getTime() - new Date(left.created_at).getTime();
+        return sort === 'date_asc' ? -createdDelta : createdDelta;
+      });
+
+      return sorted.map(toExpense);
     },
   };
 }
