@@ -491,12 +491,21 @@ tbody tr:hover {
   }
 
   .hero-pills {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
   }
 
   .hero-pills span,
   .badge {
     font-size: 0.8rem;
+  }
+
+  .hero-pills span {
+    min-height: 42px;
+    padding-inline: 8px;
+    text-align: center;
+    justify-content: center;
   }
 
   .card-header,
